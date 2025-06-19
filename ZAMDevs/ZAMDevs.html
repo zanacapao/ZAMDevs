@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reflectly App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="zam.css"> 
+</head>
+<body>
+    <header>
+        <div class="logo">Reflectly</div>
+        <div class="user-menu">
+            <span class="material-icons">notifications</span>
+            <div class="user-avatar">ZD</div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-item active">
+            <span class="material-icons">home</span>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item">
+            <span class="material-icons">menu_book</span>
+            <span>Journal</span>
+        </div>
+        <div class="nav-item">
+            <span class="material-icons">mood</span>
+            <span>Mood Tracker</span>
+        </div>
+        <div class="nav-item">
+            <span class="material-icons">task</span>
+            <span>Tasks</span>
+        </div>
+        <div class="nav-item">
+            <span class="material-icons">insights</span>
+            <span>Analytics</span>
+        </div>
+        <div class="nav-item">
+            <span class="material-icons">settings</span>
+            <span>Settings</span>
+        </div>
+    </nav>
+
+    <main>
+        <div class="welcome-card">
+            <h1>Welcome back, ZAMDevs!</h1>
+            <p class="subtitle">How are you feeling today?</p>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Today's Mood</div>
+                </div>
+                <div class="mood-display">😊</div>
+                <button class="btn">
+                    <span class="material-icons">edit</span>
+                    Update Mood
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Mood Consistency</div>
+                </div>
+                <div class="progress-container">
+                    <svg class="progress-ring" viewBox="0 0 100 100">
+                        <circle class="background" cx="50" cy="50" r="45"/>
+                        <circle class="progress" cx="50" cy="50" r="45" stroke-dasharray="282.6" stroke-dashoffset="70.6"/>
+                    </svg>
+                </div>
+                <button class="btn">
+                    <span class="material-icons">bar_chart</span>
+                    View Trends
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Quick Entry</div>
+                </div>
+                <p style="margin-bottom: 20px; color: var(--text-light);">Tap below to create a new journal entry</p>
+                <button class="btn">
+                    <span class="material-icons">add</span>
+                    New Entry
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Recent Activity</div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <span class="material-icons" style="margin-right: 10px; color: var(--primary);">check_circle</span>
+                        <span>Logged mood: Happy</span>
+                        <span style="margin-left: auto; color: var(--text-light); font-size: 0.9rem;">Today, 8:30 AM</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <span class="material-icons" style="margin-right: 10px; color: var(--primary);">article</span>
+                        <span>Created journal entry</span>
+                        <span style="margin-left: auto; color: var(--text-light); font-size: 0.9rem;">Yesterday</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="material-icons" style="margin-right: 10px; color: var(--primary);">task</span>
+                        <span>Completed task</span>
+                        <span style="margin-left: auto; color: var(--text-light); font-size: 0.9rem;">2 days ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
