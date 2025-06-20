@@ -71,8 +71,14 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Supabase
+            const supabaseUrl = 'https://xftjumejicbxbaoqfugj.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmdGp1bWVqaWNieGJhb3FmdWdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzMzk5ODEsImV4cCI6MjA2NTkxNTk4MX0.QGWradaCpxJaDn7srZVeu5LnHIjg6GSjipOZ9fx_V-Q';
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
             const loginTab = document.getElementById('login-tab');
             const signupTab = document.getElementById('signup-tab');
             const loginForm = document.getElementById('login-form');
@@ -92,23 +98,61 @@
                 loginForm.classList.remove('active');
             });
 
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    if (form.id === 'signup-form') {
-                        const password = document.getElementById('signup-password').value;
-                        const confirmPassword = document.getElementById('confirm-password').value;
-                        
-                        if (password !== confirmPassword) {
-                            alert('Passwords do not match!');
-                            return;
-                        }
+            // Show a message if redirected after email confirmation
+            if (window.location.hash.includes('access_token')) {
+                alert('Email confirmed! You can now log in.');
+                // Optionally, switch to the login tab automatically:
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+            }
+
+            // Signup handler
+            signupForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                const username = document.getElementById('username').value;
+
+                if (password !== confirmPassword) {
+                    alert('Passwords do not match!');
+                    return;
+                }
+
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { username }
                     }
-                    
-                    alert(form.id === 'login-form' ? 'Login successful!' : 'Account created successfully!');
                 });
+
+                if (error) {
+                    alert(error.message);
+                } else {
+                    alert('Account created! Please check your email to confirm.');
+                }
+            });
+
+            // Login handler
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) {
+                    alert(error.message);
+                } else {
+                    alert('Login successful!');
+                    window.location.href = "ZAMDevs.html"; // Redirect to your dashboard
+                }
             });
         });
     </script>
