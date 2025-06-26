@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 
-const palette = ["#685e7b", "#b8a6dd", "#dac8f1", "#edddec", "#f7ebe5", "#e7ddd9"];
 
 export default function Welcome() {
   const [showAbout, setShowAbout] = useState(false);
@@ -380,7 +379,44 @@ export default function Welcome() {
             margin: 0 0 18px 0;
           }
         }
+          /* Shine effect */
+.welcome-text.reflectly {
+  position: relative;
+  overflow: hidden;
+}
+.welcome-text.reflectly::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.welcome-text.reflectly:hover::before {
+  animation: shineEffect 1s ease forwards;
+  opacity: 1;
+}
+
+@keyframes shineEffect {
+  0% {
+    left: -75%;
+  }
+  100% {
+    left: 125%;
+  }
+}
       `}</style>
     </div>
   );
 }
+
