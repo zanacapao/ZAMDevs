@@ -19,3 +19,7 @@ Jose, Aleyah
 Jayno, Maria Mhikyla
 
 Ricabo, Charity
+
+
+link for free templates:
+https://dev.to/joodi/top-5-free-nextjs-template-websites-to-supercharge-your-project-31jf#:~:text=Top%205%20Free%20Next.js%20Template%20Websites%20to%20Supercharge,Vercel%20Templates%20%E2%80%94%20Official%20Next.js%20Starters%20%F0%9F%9A%80%20
