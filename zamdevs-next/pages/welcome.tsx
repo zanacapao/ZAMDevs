@@ -1,421 +1,77 @@
-import { useState, useRef } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
-import Image from "next/image";
-
+import { useState, useEffect, useContext } from "react";
+import { TransitionContext } from "./_app";
 
 export default function Welcome() {
-  const [showAbout, setShowAbout] = useState(false);
-  const [startTransition, setStartTransition] = useState(false);
-  const [aura, setAura] = useState({ x: 0, y: 0, show: false });
   const router = useRouter();
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [slideUp, setSlideUp] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [showText, setShowText] = useState(false);
+  const { showContent } = useContext(TransitionContext);
 
-  // Mouse aura effect
-  function handleMouseMove(e: React.MouseEvent) {
-    setAura({
-      x: e.clientX,
-      y: e.clientY,
-      show: true,
-    });
-  }
-  function handleMouseLeave() {
-    setAura((a) => ({ ...a, show: false }));
-  }
+  const handleProceed = () => {
+    setShowOverlay(true);
+    setTimeout(() => router.push("/about"), 900);
+  };
 
-  // Cubic bezier transition before routing
-  function handleProceed() {
-    setStartTransition(true);
-    setTimeout(() => {
-      router.push("/auth/login");
-    }, 700); // match transition duration
-  }
+  useEffect(() => {
+    setTimeout(() => setShowText(true), 100);
+  }, []);
 
   return (
     <div
-      className="welcome-bg"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      className={`relative min-h-screen w-full flex items-center justify-center animate-gradient-bg overflow-hidden transition-all duration-800 ${slideUp ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"}`}
+      style={{ cursor: "default" }}
     >
-      {/* Animated Gradient Background */}
-      <div className="animated-gradient-bg" />
-
-      {/* Mouse Aura */}
-      {aura.show && (
-        <div
-          className="mouse-aura"
-          style={{
-            left: aura.x - 150,
-            top: aura.y - 150,
-          }}
-        />
-      )}
-
-      {/* Animated Blobs */}
-      <div className="blob blob1" />
-      <div className="blob blob2" />
-      <div className="blob blob3" />
-
-      {/* Welcome Section */}
-      <div
-        className={`welcome-center${showAbout ? " slide-up" : ""}`}
-        onClick={() => !showAbout && setShowAbout(true)}
-        style={{ cursor: showAbout ? "default" : "pointer" }}
-      >
-        <div className="blur-blob" />
-        <h1 className="welcome-text animated-text">Welcome to</h1>
-        <h2 className="welcome-text reflectly animated-text-delay">Reflectly</h2>
+      <Head>
+        <title>Welcome | Reflectly</title>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+      </Head>
+      {/* Cinematic overlay transition */}
+      <div className={`fixed inset-0 z-50 pointer-events-none transition-transform duration-700 ${showOverlay ? "translate-y-0" : "translate-y-full"}`} style={{background: "linear-gradient(120deg, #A09ABC, #B6A6CA, #E1D8E9, #D4BEBE)", backgroundSize: "200% 200%"}} />
+      {/* Animated Moon */}
+      <div className="absolute top-12 right-32 md:right-48 z-10 animate-float-moon">
+        <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="45" cy="45" rx="40" ry="40" fill="#E1D8E9" />
+          <path d="M45 5a40 40 0 1 0 0 80A32 32 0 1 1 45 5z" fill="#B6A6CA" />
+        </svg>
       </div>
-
-      {/* About Us Glass Card */}
-      <div
-        className={`glass-card-container${showAbout ? " slide-in-up" : ""}${
-          startTransition ? " slide-left" : ""
-        }`}
-        ref={cardRef}
-      >
-        <div className="glass-card">
-          <div className={`logo-img-wrapper${showAbout ? " logo-animate" : ""}`}>
-            <Image
-              src="/pictures/logo.png"
-              alt="Logo"
-              className="logo-img"
-              width={110}
-              height={110}
-              priority
-            />
-          </div>
-          <div className="glass-content">
-            <h1 className="main-title">About Us</h1>
-            <p className="subtitle">
-              Reflectly is your companion for self-discovery and emotional wellness.<br />
-              Start your journey with us today!
-            </p>
-            <button
-              className="glass-btn"
-              onClick={handleProceed}
-            >
-              Proceed to Login
-            </button>
-          </div>
-        </div>
+      {/* Animated Clouds */}
+      <div className="absolute left-0 top-24 w-1/2 z-10 animate-cloud-left pointer-events-none">
+        <svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="60" rx="60" ry="20" fill="#D5CFE1" />
+          <ellipse cx="140" cy="50" rx="50" ry="18" fill="#E1D8E9" />
+          <ellipse cx="220" cy="65" rx="70" ry="22" fill="#B6A6CA" />
+        </svg>
       </div>
-
-      <style jsx>{`
-        .welcome-bg {
-          min-height: 100vh;
-          width: 100vw;
-          overflow: hidden;
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-        }
-        /* Animated Gradient Background */
-        .animated-gradient-bg {
-          position: absolute;
-          inset: 0;
-          z-index: 0;
-          background: linear-gradient(120deg, #dac8f1, #b8a6dd, #685e7b, #edddec, #f7ebe5, #e7ddd9, #dac8f1);
-          background-size: 200% 200%;
-          animation: gradientMove 12s ease-in-out infinite;
-          opacity: 0.7;
-        }
-        @keyframes gradientMove {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        /* Mouse Aura */
-        .mouse-aura {
-          position: fixed;
-          width: 300px;
-          height: 300px;
-          pointer-events: none;
-          border-radius: 50%;
-          background: radial-gradient(circle, #dac8f1cc 0%, #b8a6dd44 60%, transparent 100%);
-          z-index: 10;
-          mix-blend-mode: lighten;
-          transition: opacity 0.3s;
-          opacity: 0.7;
-        }
-        /* Animated Blobs */
-        .blob {
-          position: absolute;
-          border-radius: 50%;
-          opacity: 0.25;
-          filter: blur(60px);
-          z-index: 1;
-          pointer-events: none;
-        }
-        .blob1 {
-          width: 420px;
-          height: 320px;
-          background: radial-gradient(circle at 60% 40%, #dac8f1 0%, #b8a6dd 40%, #edddec 80%, #f7ebe5 100%);
-          top: 10%;
-          left: 8%;
-          animation: blobFloat1 12s ease-in-out infinite alternate;
-        }
-        .blob2 {
-          width: 320px;
-          height: 220px;
-          background: radial-gradient(circle at 60% 40%, #b8a6dd 0%, #685e7b 60%, #dac8f1 100%);
-          bottom: 8%;
-          right: 10%;
-          animation: blobFloat2 14s ease-in-out infinite alternate;
-        }
-        .blob3 {
-          width: 180px;
-          height: 140px;
-          background: radial-gradient(circle at 60% 40%, #f7ebe5 0%, #e7ddd9 80%);
-          top: 60%;
-          left: 60%;
-          animation: blobFloat3 10s ease-in-out infinite alternate;
-        }
-        @keyframes blobFloat1 {
-          0% { transform: scale(1) translateY(0);}
-          50% { transform: scale(1.12) translateY(30px);}
-          100% { transform: scale(1) translateY(0);}
-        }
-        @keyframes blobFloat2 {
-          0% { transform: scale(1) translateY(0);}
-          50% { transform: scale(0.95) translateY(-40px);}
-          100% { transform: scale(1) translateY(0);}
-        }
-        @keyframes blobFloat3 {
-          0% { transform: scale(1) translateX(0);}
-          50% { transform: scale(1.18) translateX(40px);}
-          100% { transform: scale(1) translateX(0);}
-        }
-
-        .welcome-center {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100vw;
-          height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.8s cubic-bezier(.77,0,.18,1), opacity 0.8s;
-          z-index: 3;
-          background: transparent;
-        }
-        .welcome-center.slide-up {
-          transform: translateY(-100vh);
-          opacity: 0;
-          pointer-events: none;
-        }
-        .blur-blob {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 480px;
-          height: 360px;
-          transform: translate(-50%, -50%);
-          background: radial-gradient(circle at 60% 40%, #dac8f1 0%, #b8a6dd 40%, #edddec 80%, #f7ebe5 100%);
-          filter: blur(80px);
-          opacity: 0.8;
-          z-index: 2;
-          animation: blobMove 6s infinite ease-in-out alternate;
-        }
-        @keyframes blobMove {
-          0% { transform: translate(-50%, -50%) scale(1) rotate(0deg);}
-          50% { transform: translate(-52%, -48%) scale(1.08) rotate(8deg);}
-          100% { transform: translate(-50%, -50%) scale(1) rotate(0deg);}
-        }
-        .welcome-text {
-          position: relative;
-          z-index: 3;
-          font-size: 3.2rem;
-          color: #685e7b;
-          font-family: 'Playfair Display', serif;
-          font-weight: 700;
-          letter-spacing: 2px;
-          text-align: center;
-          text-shadow: 0 2px 16px #dac8f1cc;
-          opacity: 0;
-          transform: translateY(40px) scale(0.95);
-          animation: fadeInUp 1s forwards cubic-bezier(.77,0,.18,1);
-        }
-        .welcome-text.reflectly {
-          font-size: 3.8rem;
-          color: #b8a6dd;
-          margin-top: 0.2em;
-          letter-spacing: 4px;
-          animation: fadeInPop 1.2s forwards cubic-bezier(.77,0,.18,1);
-        }
-        .animated-text {
-          animation-delay: 0.2s;
-        }
-        .animated-text-delay {
-          animation-delay: 0.7s;
-        }
-        @keyframes fadeInUp {
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-        @keyframes fadeInPop {
-          0% {
-            opacity: 0;
-            transform: translateY(60px) scale(0.8) rotate(-8deg);
-          }
-          60% {
-            opacity: 1;
-            transform: translateY(-10px) scale(1.08) rotate(2deg);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1) rotate(0deg);
-          }
-        }
-        .glass-card-container {
-          position: absolute;
-          left: 0;
-          bottom: -100vh;
-          width: 100vw;
-          height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          pointer-events: none;
-          transition: bottom 0.8s cubic-bezier(.77,0,.18,1), transform 0.7s cubic-bezier(.77,0,.18,1);
-          z-index: 5;
-        }
-        .glass-card-container.slide-in-up {
-          bottom: 0;
-          pointer-events: auto;
-        }
-        .glass-card-container.slide-left {
-          transform: translateX(-100vw);
-          opacity: 0;
-          pointer-events: none;
-        }
-        .glass-card {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          background: rgba(255,255,255,0.55);
-          box-shadow: 0 8px 32px 0 rgba(104,94,123,0.18);
-          backdrop-filter: blur(18px) saturate(180%);
-          border-radius: 32px;
-          border: 1.5px solid #dac8f1;
-          padding: 48px 32px;
-          max-width: 520px;
-          width: 90%;
-          min-height: 320px;
-          animation: fadeIn 0.8s;
-        }
-        .logo-img-wrapper {
-          opacity: 0;
-          transform: translateY(40px) scale(0.8);
-          transition: opacity 0.8s 0.2s, transform 0.8s 0.2s;
-        }
-        .logo-img-wrapper.logo-animate {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-        .logo-img {
-          width: 110px !important;
-          height: 110px !important;
-          object-fit: contain;
-          margin-right: 32px;
-          border-radius: 24px;
-          background: #edddec;
-          box-shadow: 0 2px 12px #dac8f1aa;
-        }
-        .glass-content {
-          flex: 1;
-        }
-        .main-title {
-          font-size: 2.3rem;
-          font-family: 'Playfair Display', serif;
-          font-weight: bold;
-          color: #685e7b;
-          margin-bottom: 12px;
-          letter-spacing: 2px;
-        }
-        .subtitle {
-          font-size: 1.1rem;
-          color: #685e7b;
-          margin-bottom: 32px;
-        }
-        .glass-btn {
-          padding: 12px 32px;
-          background: linear-gradient(90deg, #b8a6dd 0%, #dac8f1 100%);
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 1.1rem;
-          cursor: pointer;
-          font-weight: 600;
-          box-shadow: 0 2px 8px #dac8f1aa;
-          transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-          position: relative;
-          overflow: hidden;
-        }
-        .glass-btn:hover {
-          background: linear-gradient(90deg, #edddec 0%, #b8a6dd 100%);
-          color: #685e7b;
-          box-shadow: 0 0 24px 4px #dac8f1bb, 0 2px 8px #dac8f1aa;
-          transform: scale(1.05) translateY(-2px);
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px);}
-          to { opacity: 1; transform: translateY(0);}
-        }
-        @media (max-width: 900px) {
-          .glass-card-container, .glass-card-container.slide-in-up {
-            width: 100vw;
-            left: 0;
-          }
-          .glass-card {
-            flex-direction: column;
-            padding: 32px 12px;
-          }
-          .logo-img {
-            margin: 0 0 18px 0;
-          }
-        }
-          /* Shine effect */
-.welcome-text.reflectly {
-  position: relative;
-  overflow: hidden;
-}
-.welcome-text.reflectly::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -75%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: skewX(-20deg);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.welcome-text.reflectly:hover::before {
-  animation: shineEffect 1s ease forwards;
-  opacity: 1;
-}
-
-@keyframes shineEffect {
-  0% {
-    left: -75%;
-  }
-  100% {
-    left: 125%;
-  }
-}
-      `}</style>
+      <div className="absolute right-0 top-40 w-1/3 z-10 animate-cloud-right pointer-events-none">
+        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="50" cy="40" rx="50" ry="15" fill="#E1D8E9" />
+          <ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
+        </svg>
+      </div>
+      {/* Twinkling Stars */}
+      <div className="absolute left-1/3 top-1/4 text-[#fff] text-2xl opacity-80 z-0 animate-twinkle">✦</div>
+      <div className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0 animate-twinkle">✧</div>
+      <div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: "1s" }}>✦</div>
+      <div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: "2s" }}>✦</div>
+      {/* Main content with glassmorphism - perfectly centered */}
+      <div className={`relative z-20 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-6 py-12 bg-white/20 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{minHeight: '340px'}}>
+        <h1 className={`font-serif text-[2.5rem] md:text-[4rem] font-bold text-[#fff] drop-shadow-lg mb-4 transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ fontFamily: 'DM Serif Display, serif' }}>
+          Welcome to Reflectly
+        </h1>
+        <p className={`mb-8 text-lg md:text-xl text-[#E1D8E9] tracking-wide max-w-xl text-center transition-all duration-700 delay-150 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ fontFamily: 'DM Serif Display, serif' }}>
+          Click the button below to begin your journey
+        </p>
+        <button
+          onClick={handleProceed}
+          className={`relative px-10 py-4 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold text-xl shadow-lg hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30 animate-bounce-slow ${slideUp ? 'opacity-0' : 'opacity-100'}`}
+        >
+          <span className="relative z-10">Click Me</span>
+          <span className="absolute left-0 top-0 w-full h-full rounded-full bg-white/10 blur-lg opacity-60 animate-pulse pointer-events-none" />
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,121 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: linear-gradient(180deg, #4f3cbb 0%, #6a63e8 100%);
+  color: #fff;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  z-index: 1002;
+  transition: width 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem 1rem 1rem;
+  width: 240px;
+  min-width: 240px;
+}
+
+.logo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 2.5rem;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+.sidebar li {
+  margin-bottom: 1.2rem;
+}
+
+.sidebar a,
+.logoutBtn {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.13rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.sidebar a:hover,
+.logoutBtn:hover,
+.sidebar a:focus,
+.logoutBtn:focus {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffe066;
+}
+
+.sidebar .bottom-art {
+  margin-top: auto;
+  width: 100%;
+  padding-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar .bottom-art img {
+  width: 90%;
+  border-radius: 16px;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.collapsed {
+  transform: translateX(-100%);
+}
+
+.expanded {
+  transform: translateX(0);
+}
+
+.overlayToggle {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 1100;
+  background: #6a63e8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.collapseBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  align-self: flex-end;
+}
+
+.overlayBg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(60, 60, 60, 0.25);
+  z-index: 1001;
+}

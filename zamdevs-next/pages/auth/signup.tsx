@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { supabase } from "../../lib/supabaseClient"; // Make sure this path is correct
+import { supabase } from "../../lib/supabaseClient";
+import Head from "next/head";
+import { TransitionContext } from "../_app";
 
 export default function Signup() {
   const [animate, setAnimate] = useState(false);
@@ -16,10 +18,12 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const [showText, setShowText] = useState(false);
+  const { showContent } = useContext(TransitionContext);
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimate(true), 400);
-    return () => clearTimeout(timer);
+    setTimeout(() => setAnimate(true), 400);
+    setTimeout(() => setShowText(true), 100);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,399 +50,120 @@ export default function Signup() {
     });
     setLoading(false);
     if (error) setError(error.message);
-    else setSuccess(true); // Show the prompt
+    else setSuccess(true);
   };
 
   return (
-    <div className={`signup-root${animate ? " animate" : ""}`}>
-      {/* Left: Animated Circle with Logo and Text */}
-      <div className={`circle-left${animate ? " show" : ""}`}>
-        <div className="circle-bg" />
-        <div className="circle-content">
-          <div className="circle-outer">
-            <div className="circle-inner">
-              <Image
-                src="/pictures/logo.png"
-                alt="Logo"
-                width={70}
-                height={70}
-                className="circle-logo"
-                priority
-              />
-            </div>
-          </div>
-          <h2 className="circle-title">Reflectly</h2>
-          <p className="circle-desc">
-            Welcome! Sign up and start your journey.<br />
-          </p>
-        </div>
+    <div className="relative min-h-screen w-full flex items-center justify-center animate-gradient-bg overflow-hidden">
+      <Head>
+        <title>Sign Up | Reflectly</title>
+      </Head>
+      {/* Animated Clouds */}
+      <div className="absolute left-0 top-24 w-1/2 z-10 animate-cloud-left pointer-events-none">
+        <svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="60" rx="60" ry="20" fill="#D5CFE1" />
+          <ellipse cx="140" cy="50" rx="50" ry="18" fill="#E1D8E9" />
+          <ellipse cx="220" cy="65" rx="70" ry="22" fill="#B6A6CA" />
+        </svg>
       </div>
-      {/* Right: Signup Form */}
-      <div className={`signup-right${animate ? " slide-in" : ""}`}>
-        {success ? (
-          <div className="verify-message" style={{ textAlign: "center" }}>
-            Please check your email to verify your account before logging in.
-            <br />
-            <button
-              className="signup-btn"
-              style={{ marginTop: 24, width: "70%" }}
-              onClick={() => router.push("/auth/login")}
-            >
-              Go to Login
+      <div className="absolute right-0 top-40 w-1/3 z-10 animate-cloud-right pointer-events-none">
+        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="50" cy="40" rx="50" ry="15" fill="#E1D8E9" />
+          <ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
+        </svg>
+      </div>
+      {/* Twinkling Stars */}
+      <div className="absolute left-1/3 top-1/4 text-[#fff] text-2xl opacity-80 z-0 animate-twinkle">✦</div>
+      <div className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0 animate-twinkle">✧</div>
+      <div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: "1s" }}>✦</div>
+      <div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: "2s" }}>✦</div>
+      {/* Glassmorphism card */}
+      <div className={`relative z-20 flex flex-col items-center justify-center w-full max-w-md mx-auto px-6 py-10 bg-white/20 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <h1 className={`font-serif text-3xl md:text-4xl font-bold text-white drop-shadow-[0_2px_8px_rgba(80,60,120,0.25)] mb-4 transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>Sign Up</h1>
+        <p className={`mb-8 text-lg text-white/90 text-center drop-shadow-[0_1px_6px_rgba(80,60,120,0.18)] transition-all duration-700 delay-150 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>Create your account and start your journey with Reflectly.</p>
+        <form className="w-full max-w-md bg-white/30 rounded-xl shadow-lg p-8 flex flex-col gap-4" onSubmit={handleSignup}>
+          <label htmlFor="firstName" className="text-white/90 font-semibold mb-1">First Name</label>
+          <input
+            id="firstName"
+            name="firstName"
+            type="text"
+            placeholder="First Name"
+            required
+            value={form.firstName}
+            onChange={handleChange}
+            className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+          />
+          <label htmlFor="lastName" className="text-white/90 font-semibold mb-1">Last Name</label>
+          <input
+            id="lastName"
+            name="lastName"
+            type="text"
+            placeholder="Last Name"
+            required
+            value={form.lastName}
+            onChange={handleChange}
+            className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+          />
+          <label htmlFor="email" className="text-white/90 font-semibold mb-1">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Email"
+            required
+            value={form.email}
+            onChange={handleChange}
+            className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+          />
+          <label htmlFor="password" className="text-white/90 font-semibold mb-1">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Password"
+            required
+            value={form.password}
+            onChange={handleChange}
+            className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+          />
+          <label htmlFor="confirm" className="text-white/90 font-semibold mb-1">Re-enter password</label>
+          <input
+            id="confirm"
+            name="confirm"
+            type="password"
+            placeholder="Re-enter password"
+            required
+            value={form.confirm}
+            onChange={handleChange}
+            className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+          />
+          <div className="flex items-center gap-2 text-xs text-[#6C63A6] font-light">
+            <input type="checkbox" required id="terms" className="accent-[#A09ABC]" />
+            <label htmlFor="terms">
+              I've read and agree with Terms of Service and our Privacy Policy
+            </label>
+          </div>
+          <button className="py-2 rounded-lg bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold hover:from-[#B6A6CA] hover:to-[#A09ABC] transition" type="submit" disabled={loading}>
+            {loading ? "Signing up..." : "Sign up"}
+          </button>
+          {error && <div className="text-red-500 text-center mt-2">{error}</div>}
+          <div className="text-center text-[#B6A6CA] font-normal text-xs my-2">or connect with</div>
+          <div className="flex gap-3 justify-center">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D5CFE1] bg-white text-[#6C63A6] font-semibold hover:bg-[#E1D8E9] hover:text-[#A09ABC] transition" type="button">
+              <Image src="/pictures/google.png" alt="Google" width={22} height={22} />
+              Google
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D5CFE1] bg-white text-[#6C63A6] font-semibold hover:bg-[#E1D8E9] hover:text-[#A09ABC] transition" type="button">
+              <Image src="/pictures/Facebook.png" alt="Facebook" width={22} height={22} />
+              Facebook
             </button>
           </div>
-        ) : (
-          <form className="signup-form glass" onSubmit={handleSignup}>
-            <h2 className="signup-title">Sign Up</h2>
-            <div className="signup-row">
-              <input
-                type="text"
-                name="firstName"
-                placeholder="First Name"
-                required
-                value={form.firstName}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="lastName"
-                placeholder="Last Name"
-                required
-                value={form.lastName}
-                onChange={handleChange}
-              />
-            </div>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              required
-              value={form.email}
-              onChange={handleChange}
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              required
-              value={form.password}
-              onChange={handleChange}
-            />
-            <input
-              type="password"
-              name="confirm"
-              placeholder="Re-enter password"
-              required
-              value={form.confirm}
-              onChange={handleChange}
-            />
-            <div className="signup-check">
-              <input type="checkbox" required id="terms" />
-              <label htmlFor="terms">
-                I&#39;ve read and agree with Terms of Service and our Privacy Policy
-              </label>
-            </div>
-            <button className="signup-btn" type="submit" disabled={loading}>
-              {loading ? "Signing up..." : "Sign up"}
-            </button>
-            {error && <div style={{ color: "#ff4d4f", textAlign: "center", marginTop: 8 }}>{error}</div>}
-            <div className="signup-or">or connect with</div>
-            <div className="signup-socials">
-              <button className="social-btn google-btn" type="button">
-                <img src="/pictures/google.png" alt="Google" />
-                Google
-              </button>
-              <button className="social-btn facebook-btn" type="button">
-                <img src="/pictures/facebook.png" alt="Facebook" />
-                Facebook
-              </button>
-            </div>
-            <div className="signup-login">
-              Already have an account?{" "}
-              <span className="signup-link" onClick={() => router.push("/auth/login")}>
-                Sign in
-              </span>
-            </div>
-          </form>
-        )}
+          <div className="text-center text-[#6C63A6] mt-2 text-sm">
+            Already have an account?{" "}
+            <span className="text-[#A09ABC] font-semibold cursor-pointer hover:underline" onClick={() => router.push("/auth/login")}>Sign in</span>
+          </div>
+        </form>
       </div>
-      <style jsx>{`
-        .signup-root {
-          min-height: 100vh;
-          width: 100vw;
-          display: flex;
-          background: #f7ebe5;
-          overflow: hidden;
-          position: relative;
-        }
-        .circle-left {
-          flex: 1.1;
-          min-width: 340px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          background: transparent;
-          opacity: 0;
-          transform: translateX(-80px) scale(0.96);
-          transition: opacity 0.9s cubic-bezier(.77,0,.18,1), transform 0.9s cubic-bezier(.77,0,.18,1);
-        }
-        .circle-left.show {
-          opacity: 1;
-          transform: translateX(0) scale(1);
-        }
-        .circle-bg {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          background: radial-gradient(circle at 70% 40%, #dac8f1 0%, #b8a6dd 40%, #685e7b 100%);
-          opacity: 0.18;
-          z-index: 0;
-          animation: bgMove 8s infinite alternate cubic-bezier(.77,0,.18,1);
-        }
-        @keyframes bgMove {
-          0% { filter: blur(0px) brightness(1);}
-          50% { filter: blur(12px) brightness(1.08);}
-          100% { filter: blur(0px) brightness(1);}
-        }
-        .circle-content {
-          position: relative;
-          z-index: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          max-width: 400px;
-          padding: 32px;
-        }
-        .circle-outer {
-          width: 260px;
-          height: 260px;
-          border-radius: 50%;
-          background: conic-gradient(from 90deg, #dac8f1 0% 25%, #b8a6dd 25% 50%, #685e7b 50% 75%, #edddec 75% 100%);
-          box-shadow: 0 8px 32px 0 #dac8f1aa;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          animation: cdSpin 7s linear infinite;
-          margin-bottom: 18px;
-        }
-        @keyframes cdSpin {
-          100% { transform: rotate(360deg);}
-        }
-        .circle-inner {
-          width: 110px;
-          height: 110px;
-          background: #fff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 12px #dac8f1aa;
-        }
-        .circle-logo {
-          border-radius: 50%;
-          object-fit: contain;
-        }
-        .circle-title {
-          color: #685e7b;
-          font-family: 'Playfair Display', serif;
-          font-size: 2.1rem;
-          font-weight: 700;
-          margin: 10px 0 4px 0;
-          letter-spacing: 2px;
-          text-align: center;
-          opacity: 0;
-          animation: fadeInUp 1s 0.5s forwards cubic-bezier(.77,0,.18,1);
-        }
-        .circle-desc {
-          color: #685e7b;
-          font-size: 1.1rem;
-          text-align: center;
-          margin-bottom: 0;
-          opacity: 0;
-          animation: fadeInUp 1s 0.8s forwards cubic-bezier(.77,0,.18,1);
-        }
-        .highlight {
-          color: #b8a6dd;
-          font-weight: 700;
-        }
-        .signup-right {
-          flex: 1.4;
-          background: transparent;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0;
-          transform: translateX(80px) scale(0.96);
-          transition: opacity 0.9s cubic-bezier(.77,0,.18,1), transform 0.9s cubic-bezier(.77,0,.18,1);
-        }
-        .signup-right.slide-in {
-          opacity: 1;
-          transform: translateX(0) scale(1);
-        }
-        .glass {
-          background: rgba(255,255,255,0.35);
-          box-shadow: 0 8px 32px 0 #dac8f1aa;
-          backdrop-filter: blur(18px) saturate(180%);
-          -webkit-backdrop-filter: blur(18px) saturate(180%);
-          border-radius: 18px;
-          border: 1.5px solid #dac8f1;
-        }
-        .signup-form {
-          width: 100%;
-          max-width: 370px;
-          padding: 38px 32px 28px 32px;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          opacity: 1;
-          transform: none;
-          animation: fadeInUp 1s 1.1s forwards cubic-bezier(.77,0,.18,1);
-        }
-        .signup-title {
-          color: #685e7b;
-          font-family: 'Playfair Display', serif;
-          font-size: 2rem;
-          font-weight: 700;
-          text-align: center;
-          margin-bottom: 12px;
-          letter-spacing: 2px;
-        }
-        .signup-row {
-          display: flex;
-          gap: 10px;
-        }
-        .signup-row input {
-          flex: 1;
-          min-width: 0;
-        }
-        .signup-form input[type="text"],
-        .signup-form input[type="email"],
-        .signup-form input[type="password"] {
-          padding: 10px 14px;
-          border-radius: 8px;
-          border: 1.5px solid #dac8f1;
-          background: rgba(255,255,255,0.7);
-          color: #685e7b;
-          font-size: 1rem;
-          margin-bottom: 2px;
-          outline: none;
-          transition: border 0.2s, box-shadow 0.2s;
-        }
-        .signup-form input:focus {
-          border: 1.5px solid #b8a6dd;
-          box-shadow: 0 2px 8px #dac8f1aa;
-        }
-        .signup-check {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.95rem;
-          color: #685e7b;
-        }
-        .signup-btn {
-          padding: 12px 0;
-          border-radius: 8px;
-          border: none;
-          background: linear-gradient(90deg, #b8a6dd 0%, #dac8f1 100%);
-          color: #fff;
-          font-size: 1.1rem;
-          font-weight: 600;
-          cursor: pointer;
-          box-shadow: 0 2px 12px #dac8f1aa;
-          margin-top: 8px;
-          transition: background 0.3s, color 0.3s, box-shadow 0.3s, transform 0.2s;
-        }
-        .signup-btn:hover {
-          background: linear-gradient(90deg, #edddec 0%, #b8a6dd 100%);
-          color: #685e7b;
-          box-shadow: 0 0 24px 4px #dac8f1bb, 0 2px 8px #dac8f1aa;
-          transform: scale(1.05) translateY(-2px);
-        }
-        .signup-or {
-          text-align: center;
-          color: #b8a6dd;
-          font-size: 1rem;
-          margin: 10px 0 4px 0;
-          font-weight: 600;
-        }
-        .signup-socials {
-          display: flex;
-          gap: 10px;
-          justify-content: center;
-        }
-        .social-btn {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 8px 0;
-          border-radius: 8px;
-          border: 1.5px solid #dac8f1;
-          background: #fff;
-          color: #685e7b;
-          font-weight: 600;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-        }
-        .social-btn:hover {
-          background: #dac8f1;
-          color: #fff;
-          box-shadow: 0 2px 12px #dac8f1aa;
-        }
-        .google-btn img,
-        .facebook-btn img {
-          width: 22px;
-          height: 22px;
-        }
-        .signup-login {
-          text-align: center;
-          margin-top: 10px;
-          color: #685e7b;
-          font-size: 1rem;
-        }
-        .signup-link {
-          color: #b8a6dd;
-          cursor: pointer;
-          font-weight: 600;
-          margin-left: 4px;
-          transition: color 0.2s;
-        }
-        .signup-link:hover {
-          color: #685e7b;
-          text-decoration: underline;
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(40px);}
-          to { opacity: 1; transform: translateY(0);}
-        }
-        @media (max-width: 900px) {
-          .signup-root {
-            flex-direction: column;
-          }
-          .circle-left, .signup-right {
-            min-width: 0;
-            width: 100vw;
-            min-height: 320px;
-          }
-          .circle-content {
-            padding: 24px 8px;
-          }
-          .signup-form {
-            padding: 24px 8px 18px 8px;
-          }
-          .signup-row {
-            flex-direction: column;
-            gap: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
