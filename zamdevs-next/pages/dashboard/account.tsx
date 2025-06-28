@@ -12,7 +12,14 @@ export default function Account() {
   const [bio, setBio] = useState("Short bio goes here...");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  type JournalEntry = {
+    id: string;
+    created_at: string;
+    title: string;
+    content: string;
+    // Add other fields as needed based on your database schema
+  };
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const headerInput = useRef<HTMLInputElement>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -61,7 +68,7 @@ export default function Account() {
     if (e.target.files && e.target.files[0] && userId) {
       const file = e.target.files[0];
       const filePath = `${userId}/${type}-${Date.now()}.${file.name.split('.').pop()}`;
-      let { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("profile-images")
         .upload(filePath, file, { upsert: true });
       if (!uploadError) {
@@ -188,26 +195,18 @@ export default function Account() {
               Save Phone
             </button>
           </div>
-          {/* Journal Entries */}
-          <div className="mt-12">
-            <h3 className="text-xl md:text-2xl font-serif font-bold text-[#A09ABC] mb-4 drop-shadow">Your Journal Entries</h3>
-            <div className="space-y-4">
-              {journalEntries.length === 0 && (
-                <div className="text-[#B6A6CA] text-center">No journal entries yet.</div>
-              )}
-              {journalEntries.map((entry: any) => (
-                <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow flex flex-col border border-white/30">
-                  <div className="text-sm text-[#A09ABC] mb-1">
-                    {new Date(entry.created_at).toLocaleString()}
-                  </div>
-                  <div className="font-semibold text-[#6C63A6]">{entry.title}</div>
-                  <div className="text-[#6C63A6]">{entry.content}</div>
-                </div>
-              ))}
+          {journalEntries.map((entry) => (
+            <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow flex flex-col border border-white/30">
+              <div className="text-sm text-[#A09ABC] mb-1">
+                {new Date(entry.created_at).toLocaleString()}
+              </div>
+              <div className="font-semibold text-[#6C63A6]">{entry.title}</div>
+              <div className="text-[#6C63A6]">{entry.content}</div>
             </div>
-          </div>
+          ))}
         </div>
       </main>
-    </div>
-  );
-}
+      </div>
+    );
+  }
+  
