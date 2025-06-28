@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/router";
+import Sidebar from "../../components/Sidebar";
+import Head from "next/head";
 
 type JournalEntry = {
   id: string;
   content: string;
   user_id: string;
   created_at: string;
+  public?: boolean;
 };
 
 export default function Journal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [newEntry, setNewEntry] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,11 +47,12 @@ export default function Journal() {
     }
     const { data, error } = await supabase
       .from("journal")
-      .insert([{ content: newEntry, user_id: session.user.id }])
+      .insert([{ content: newEntry, user_id: session.user.id, public: isPublic }])
       .select();
     if (!error && data) {
       setEntries([data[0], ...entries]);
       setNewEntry("");
+      setIsPublic(false);
     }
   };
 
@@ -55,50 +61,84 @@ export default function Journal() {
     setEntries(entries.filter((entry) => entry.id !== id));
   };
 
-  if (loading) return <div className="text-center text-[#6C63A6] mt-20">Loading your journal...</div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA] items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#A09ABC]"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 min-h-screen">
-      <h2 className="text-3xl font-bold text-[#A09ABC] mb-6">📔 My Journal</h2>
+    <>
+      <Head>
+        <title>Journal - Reflectly</title>
+        <meta name="description" content="Your personal journal entries" />
+      </Head>
+      <div className="flex min-h-screen bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]">
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        <main className={`flex-1 p-10 bg-transparent min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-[#A09ABC] mb-6">📔 My Journal</h2>
 
-      {/* Entry Form */}
-      <div className="mb-8 bg-white/60 p-4 rounded-xl shadow backdrop-blur-md border border-white/30">
-        <textarea
-          value={newEntry}
-          onChange={(e) => setNewEntry(e.target.value)}
-          placeholder="Write your thoughts here..."
-          className="w-full p-3 rounded-lg bg-white/70 text-[#6C63A6] focus:outline-none focus:ring-2 focus:ring-[#A09ABC] mb-3"
-          rows={4}
-        />
-        <button
-          onClick={addEntry}
-          className="px-6 py-2 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-bold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300"
-        >
-          ➕ Add Entry
-        </button>
-      </div>
-
-      {/* Journal Entries */}
-      {entries.length === 0 ? (
-        <div className="text-[#6C63A6] text-center">No entries yet. Start writing above! ✍️</div>
-      ) : (
-        <div className="space-y-4">
-          {entries.map((entry) => (
-            <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow border border-white/30">
-              <div className="flex justify-between items-center text-sm text-[#A09ABC] mb-2">
-                <span>{new Date(entry.created_at).toLocaleString()}</span>
-                <button
-                  onClick={() => deleteEntry(entry.id)}
-                  className="text-red-500 hover:underline"
-                >
-                  🗑️ Delete
-                </button>
+            {/* Entry Form */}
+            <div className="mb-8 bg-white/60 p-6 rounded-xl shadow backdrop-blur-md border border-white/30">
+              <textarea
+                value={newEntry}
+                onChange={(e) => setNewEntry(e.target.value)}
+                placeholder="Write your thoughts here..."
+                className="w-full p-3 rounded-lg bg-white/70 text-[#6C63A6] focus:outline-none focus:ring-2 focus:ring-[#A09ABC] mb-3"
+                rows={4}
+              />
+              <div className="flex items-center gap-3 mb-3">
+                <input
+                  type="checkbox"
+                  id="public-toggle"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                  className="w-4 h-4 text-[#A09ABC] bg-white/70 border-[#A09ABC] rounded focus:ring-[#A09ABC] focus:ring-2"
+                />
+                <label htmlFor="public-toggle" className="text-[#6C63A6] font-medium">
+                  🌍 Share this entry publicly
+                </label>
               </div>
-              <div className="text-[#6C63A6] whitespace-pre-wrap">{entry.content}</div>
+              <button
+                onClick={addEntry}
+                className="px-6 py-2 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-bold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300"
+              >
+                ➕ Add Entry
+              </button>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+
+            {/* Journal Entries */}
+            {entries.length === 0 ? (
+              <div className="text-[#6C63A6] text-center bg-white/60 p-8 rounded-xl backdrop-blur-md border border-white/30">
+                No entries yet. Start writing above! ✍️
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {entries.map((entry) => (
+                  <div key={entry.id} className="bg-white/70 rounded-xl p-6 shadow border border-white/30 backdrop-blur-md">
+                    <div className="flex justify-between items-center text-sm text-[#A09ABC] mb-3">
+                      <div className="flex items-center gap-2">
+                        <span>{new Date(entry.created_at).toLocaleString()}</span>
+                        {entry.public && <span className="bg-[#A09ABC] text-white px-2 py-1 rounded-full text-xs">🌍 Public</span>}
+                      </div>
+                      <button
+                        onClick={() => deleteEntry(entry.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                    <div className="text-[#6C63A6] whitespace-pre-wrap leading-relaxed">{entry.content}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </>
   );
 }

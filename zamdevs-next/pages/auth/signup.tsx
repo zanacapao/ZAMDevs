@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient";
 import Head from "next/head";
 import { TransitionContext } from "../_app";
 import { FiBell } from "react-icons/fi";
+import Link from "next/link";
 
 export default function Signup() {
   const [animate, setAnimate] = useState(false);
@@ -14,6 +15,7 @@ export default function Signup() {
     email: "",
     password: "",
     confirm: "",
+    phone: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,7 @@ export default function Signup() {
         data: {
           first_name: form.firstName,
           last_name: form.lastName,
+          phone: form.phone,
         },
       },
     });
@@ -64,7 +67,6 @@ export default function Signup() {
     const user = sessionData?.user;
 
     if (user) {
-      console.log("User object before profile insert:", user); // Debug log
       const { error: profileError } = await supabase
         .from("profiles")
         .insert([
@@ -72,6 +74,7 @@ export default function Signup() {
             id: user.id,
             email: form.email,
             full_name: form.firstName + " " + form.lastName,
+            phone: form.phone,
           },
         ]);
       if (profileError) {
@@ -79,20 +82,14 @@ export default function Signup() {
         setLoading(false);
         return;
       }
-    } else {
-      setError("User not authenticated after signup.");
-      setLoading(false);
-      return;
     }
-
-    console.log("Signup response data:", data);
-
-    setLoading(false);
+    // Show success message and disable button
     setSuccess(true);
+    setLoading(false);
   };
 
   return (
-    <div className={`relative min-h-screen w-full flex items-center justify-center animate-gradient-bg overflow-hidden${animate ? ' animate-fade-in' : ''}`}>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-[#E1D8E9] via-[#B6A6CA] to-[#D4BEBE] relative">
       <Head>
         <title>Sign Up | Reflectly</title>
       </Head>
@@ -115,7 +112,11 @@ export default function Signup() {
       <div className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0 animate-twinkle">✧</div>
       <div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: "1s" }}>✦</div>
       <div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: "2s" }}>✦</div>
-      {/* Glassmorphism card */}
+      {/* Logo top left, outside the card */}
+      <Link href="/" className="absolute top-6 left-6 flex items-center gap-2 z-10">
+        <Image src="/pictures/logo.png" alt="Reflectly Logo" width={40} height={40} />
+        <span className="text-[#A09ABC] font-serif font-bold text-2xl tracking-wide">Reflectly</span>
+      </Link>
       <div className={`relative z-20 flex flex-col items-center justify-center w-full max-w-md mx-auto px-6 py-10 bg-white/20 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <h1 className={`font-serif text-3xl md:text-4xl font-bold text-white drop-shadow-[0_2px_8px_rgba(80,60,120,0.25)] mb-4 transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>Sign Up</h1>
         <p className={`mb-8 text-lg text-white/90 text-center drop-shadow-[0_1px_6px_rgba(80,60,120,0.18)] transition-all duration-700 delay-150 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>Create your account and start your journey with Reflectly.</p>
@@ -128,8 +129,8 @@ export default function Signup() {
           </div>
         )}
         {success && (
-          <div className="text-green-600 bg-white/80 border border-green-300 rounded-lg p-3 mb-2 text-center shadow">
-            Signup successful! Please check your email to confirm your account.
+          <div className="bg-[#D5CFE1] text-[#A09ABC] rounded-lg p-4 text-center font-semibold mb-4">
+            Please check your email to confirm your account.
           </div>
         )}
         <form className="w-full max-w-md bg-white/30 rounded-xl shadow-lg p-8 flex flex-col gap-4" onSubmit={handleSignup}>
@@ -143,6 +144,7 @@ export default function Signup() {
             value={form.firstName}
             onChange={handleChange}
             className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+            disabled={success}
           />
           <label htmlFor="lastName" className="text-white/90 font-semibold mb-1">Last Name</label>
           <input
@@ -154,6 +156,7 @@ export default function Signup() {
             value={form.lastName}
             onChange={handleChange}
             className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+            disabled={success}
           />
           <label htmlFor="email" className="text-white/90 font-semibold mb-1">Email</label>
           <input
@@ -165,6 +168,7 @@ export default function Signup() {
             value={form.email}
             onChange={handleChange}
             className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+            disabled={success}
           />
           <label htmlFor="password" className="text-white/90 font-semibold mb-1">Password</label>
           <input
@@ -176,6 +180,7 @@ export default function Signup() {
             value={form.password}
             onChange={handleChange}
             className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+            disabled={success}
           />
           <label htmlFor="confirm" className="text-white/90 font-semibold mb-1">Re-enter password</label>
           <input
@@ -187,14 +192,27 @@ export default function Signup() {
             value={form.confirm}
             onChange={handleChange}
             className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+            disabled={success}
+          />
+          <label htmlFor="phone" className="text-white/90 font-semibold mb-1">Phone Number</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            placeholder="Phone Number"
+            required
+            value={form.phone}
+            onChange={handleChange}
+            className="p-3 rounded-lg border border-[#D5CFE1] bg-white/80 text-[#6C63A6] placeholder-[#A09ABC] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+            disabled={success}
           />
           <div className="flex items-center gap-2 text-xs text-[#6C63A6] font-light">
-            <input type="checkbox" required id="terms" className="accent-[#A09ABC]" />
+            <input type="checkbox" required id="terms" className="accent-[#A09ABC]" disabled={success} />
             <label htmlFor="terms">
-              I&#39ve read and agree with Terms of Service and our Privacy Policy
+              I&#39;ve read and agree with Terms of Service and our <a href="#" className="underline">Privacy Policy</a>
             </label>
           </div>
-          <button className="py-2 rounded-lg bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold hover:from-[#B6A6CA] hover:to-[#A09ABC] transition" type="submit" disabled={loading}>
+          <button className="py-2 rounded-lg bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold hover:from-[#B6A6CA] hover:to-[#A09ABC] transition" type="submit" disabled={success || loading}>
             {loading ? "Signing up..." : "Sign up"}
           </button>
           {error && <div className="text-red-500 text-center mt-2">{error}</div>}
