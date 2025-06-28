@@ -80,7 +80,6 @@ export default function Journal() {
         <main className={`flex-1 p-10 bg-transparent min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold text-[#A09ABC] mb-6">📔 My Journal</h2>
-
             {/* Entry Form */}
             <div className="mb-8 bg-white/60 p-6 rounded-xl shadow backdrop-blur-md border border-white/30">
               <textarea
@@ -109,7 +108,6 @@ export default function Journal() {
                 ➕ Add Entry
               </button>
             </div>
-
             {/* Journal Entries */}
             {entries.length === 0 ? (
               <div className="text-[#6C63A6] text-center bg-white/60 p-8 rounded-xl backdrop-blur-md border border-white/30">

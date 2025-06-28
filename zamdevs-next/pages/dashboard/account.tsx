@@ -1,10 +1,9 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 import Image from "next/image";
 import { supabase } from "../../lib/supabaseClient";
 import Sidebar from "../../components/Sidebar";
 import Head from "next/head";
-import { useRouter } from "next/router";
-import { FaTrophy, FaCalendarCheck, FaFire } from "react-icons/fa";
+import { TransitionContext } from "../_app";
 
 export default function Account() {
   const [header, setHeader] = useState("/default-header.jpg");
@@ -13,20 +12,15 @@ export default function Account() {
   const [bio, setBio] = useState("Short bio goes here...");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  type JournalEntry = {
-    id: string;
-    created_at: string;
-    title: string;
-    content: string;
-    // Add other fields as needed based on your database schema
-  };
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
-  const headerInput = useRef<HTMLInputElement>(null);
-  const avatarInput = useRef<HTMLInputElement>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [collapsed, setCollapsed] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [collapsed, setCollapsed] = useState(false);
+  const [showText, setShowText] = useState(false);
+  const { showContent } = useContext(TransitionContext);
+
+  useEffect(() => {
+    setTimeout(() => setShowText(true), 100);
+  }, []);
 
   // Fetch user info and profile images
   useEffect(() => {
@@ -72,7 +66,7 @@ export default function Account() {
       setLoading(false);
     }
     fetchProfile();
-  }, [router]);
+  }, []);
 
   // Upload image to Supabase Storage and update profile
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "header") {
@@ -97,7 +91,15 @@ export default function Account() {
 
   async function handlePhoneSave() {
     if (userId) {
-      await supabase.from("profiles").update({ phone }).eq("id", userId);
+      setProfileLoading(true);
+      await supabase.from("profiles").update({
+        full_name: name,
+        bio,
+        phone,
+      }).eq("id", userId);
+      setProfileLoading(false);
+      setProfileSuccess(true);
+      setTimeout(() => setProfileSuccess(false), 3000);
     }
   }
 
@@ -122,58 +124,118 @@ export default function Account() {
         <title>Account | Reflectly</title>
         <meta name="description" content="Manage your account settings" />
       </Head>
-      <div className="flex min-h-screen bg-gradient-to-br from-[#E1D8E9] via-[#D5CFE1] to-[#B6A6CA]">
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        <main className={`flex-1 p-10 bg-transparent min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
-          <div className="w-full max-w-3xl mx-auto flex flex-col gap-8">
-            {/* Profile Info Card */}
-            <div className="bg-white/30 rounded-2xl shadow-xl backdrop-blur-md p-6 flex flex-col md:flex-row items-center gap-6 border border-white/40">
-              <Image src={avatar} alt="Avatar" width={96} height={96} className="rounded-full border-4 border-[#E1D8E9] bg-white" />
-              <div className="flex-1 flex flex-col items-center md:items-start">
-                <div className="text-2xl font-bold text-[#A09ABC] font-serif mb-1">{name}</div>
-                <div className="text-[#6C63A6] mb-1">{email}</div>
-                <div className="text-[#B6A6CA] mb-1">{phone}</div>
-                <div className="flex gap-2 mt-2">
-                  <span className="bg-[#B6A6CA] text-white rounded-full px-3 py-1 text-xs font-semibold shadow">🔥 {journalEntries.length} entries</span>
-                  <span className="bg-[#D5CFE1] text-[#A09ABC] rounded-full px-3 py-1 text-xs font-semibold shadow">Streak: 5 days</span>
-                </div>
-              </div>
-            </div>
-            {/* Achievements Grid */}
-            <div>
-              <div className="text-lg font-bold text-[#A09ABC] mb-2" style={{ fontFamily: 'serif', letterSpacing: 1 }}>Achievements</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {achievements.map((ach, i) => (
-                  <div key={i} className="bg-white/40 rounded-xl p-4 flex flex-col items-center shadow backdrop-blur-md border border-white/30">
-                    <div className="text-3xl mb-2 text-[#B6A6CA]">{ach.icon}</div>
-                    <div className="font-semibold text-[#A09ABC] mb-1">{ach.label}</div>
-                    <div className="text-xs text-[#6C63A6] text-center">{ach.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Journal Timeline */}
-            <div>
-              <div className="text-lg font-bold text-[#A09ABC] mb-2" style={{ fontFamily: 'serif', letterSpacing: 1 }}>Journal Timeline</div>
-              <div className="flex flex-col gap-6">
-                {journalEntries.length === 0 ? (
-                  <div className="bg-white/40 rounded-xl p-6 text-center text-[#B6A6CA] shadow backdrop-blur-md border border-white/30">No entries yet. Start journaling to see your timeline!</div>
-                ) : (
-                  journalEntries.map((entry, idx) => (
-                    <div key={entry.id} className="bg-white/40 rounded-xl p-6 shadow backdrop-blur-md border border-white/30 flex flex-col gap-2 relative">
-                      <div className="absolute left-[-32px] top-8 w-2 h-2 bg-[#A09ABC] rounded-full shadow" style={{ display: idx === 0 ? 'none' : 'block' }}></div>
-                      <div className="text-xs text-[#B6A6CA] mb-1">{new Date(entry.created_at).toLocaleString()}</div>
-                      <div className="font-semibold text-[#A09ABC] text-lg">{entry.title || 'Untitled Entry'}</div>
-                      <div className="text-[#6C63A6] whitespace-pre-wrap">{entry.content}</div>
-                    </div>
-                  ))
-                )}
-              </div>
+      {/* Sidebar */}
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      {/* Animated Clouds */}
+      <div className="absolute left-0 top-24 w-1/2 z-10 animate-cloud-left pointer-events-none">
+        <svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="60" rx="60" ry="20" fill="#D5CFE1" />
+          <ellipse cx="140" cy="50" rx="50" ry="18" fill="#E1D8E9" />
+          <ellipse cx="220" cy="65" rx="70" ry="22" fill="#B6A6CA" />
+        </svg>
+      </div>
+      <div className="absolute right-0 top-40 w-1/3 z-10 animate-cloud-right pointer-events-none">
+        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="50" cy="40" rx="50" ry="15" fill="#E1D8E9" />
+          <ellipse cx="120" cy="30" rx="40" ry="12" fill="#D5CFE1" />
+        </svg>
+      </div>
+      {/* Twinkling Stars */}
+      <div className="absolute left-1/3 top-1/4 text-[#fff] text-2xl opacity-80 z-0 animate-twinkle">✦</div>
+      <div className="absolute right-1/4 bottom-1/3 text-[#fff] text-xl opacity-60 z-0 animate-twinkle">✧</div>
+      <div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: "1s" }}>✦</div>
+      <div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: "2s" }}>✦</div>
+      {/* Main Content */}
+      <main className="flex-1 ml-64 flex items-center justify-center p-6 min-h-screen">
+        <div className={`relative z-20 w-full max-w-2xl mx-auto px-6 py-10 bg-white/30 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Header Image & Avatar */}
+          <div className="relative h-48 md:h-56 bg-gradient-to-r from-[#A09ABC]/40 to-[#B6A6CA]/40 rounded-2xl overflow-hidden mb-20 flex items-center justify-center">
+            <Image
+              src={header}
+              alt="Header"
+              fill
+              style={{ objectFit: "cover" }}
+              className="rounded-2xl"
+              onError={(e) => (e.currentTarget.src = "/default-header.jpg")}
+            />
+            <button
+              onClick={() => headerInput.current?.click()}
+              className="absolute right-6 bottom-6 bg-white/80 px-4 py-2 rounded shadow text-[#A09ABC] font-semibold hover:bg-white"
+            >
+              Edit Header
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={headerInput}
+              style={{ display: "none" }}
+              onChange={e => handleImageChange(e, "header")}
+            />
+            {/* Avatar */}
+            <div className="absolute left-1/2 -bottom-16 -translate-x-1/2 border-8 border-white rounded-full w-32 h-32 bg-white shadow flex items-center justify-center overflow-hidden">
+              <Image
+                src={avatar}
+                alt="Avatar"
+                width={112}
+                height={112}
+                style={{ objectFit: "cover" }}
+                onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
+              />
+              <button
+                onClick={() => avatarInput.current?.click()}
+                className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow"
+              >
+                ✏️
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                ref={avatarInput}
+                style={{ display: "none" }}
+                onChange={e => handleImageChange(e, "avatar")}
+              />
             </div>
           </div>
-        </main>
+          {/* Profile Info */}
+          <div className="mt-20 flex flex-col items-center">
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="text-2xl md:text-3xl font-serif font-bold bg-transparent border-none w-full text-center mb-2 text-[#A09ABC] drop-shadow focus:outline-none"
+            />
+            <div className="text-[#6C63A6] mb-2 text-center text-lg font-semibold drop-shadow">{email}</div>
+            <textarea
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              className="bg-transparent border-none w-full text-center text-[#6C63A6] mb-4 font-medium focus:outline-none"
+              rows={2}
+            />
+            <input
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              placeholder="Phone Number"
+              className="bg-white/60 border-b border-[#A09ABC]/30 w-full mb-2 px-3 py-2 rounded-lg text-[#6C63A6] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
+            />
+            <button
+              onClick={handlePhoneSave}
+              className="mt-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30"
+            >
+              Save Phone
+            </button>
+          </div>
+          {journalEntries.map((entry) => (
+            <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow flex flex-col border border-white/30">
+              <div className="text-sm text-[#A09ABC] mb-1">
+                {new Date(entry.created_at).toLocaleString()}
+              </div>
+              <div className="font-semibold text-[#6C63A6]">{entry.title}</div>
+              <div className="text-[#6C63A6]">{entry.content}</div>
+            </div>
+          ))}
+        </div>
+      </main>
       </div>
-    </>
-  );
-}
+    );
+  }
   

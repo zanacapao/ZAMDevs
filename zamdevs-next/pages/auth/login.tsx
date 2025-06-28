@@ -33,8 +33,34 @@ export default function Login() {
     e.preventDefault();
     setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    else router.push("/dashboard");
+    if (error) {
+      setError(error.message);
+    } else {
+      // After successful login, ensure profile exists
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (user) {
+        // Check if profile exists
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", user.id)
+          .single();
+        if (!profile && !profileError) {
+          // Insert new profile with id and email
+          await supabase.from("profiles").insert([
+            {
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.first_name && user.user_metadata?.last_name
+                ? user.user_metadata.first_name + " " + user.user_metadata.last_name
+                : "",
+            },
+          ]);
+        }
+      }
+      router.push("/dashboard");
+    }
   }
 
   function handleSignup() {
