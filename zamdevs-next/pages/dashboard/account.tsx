@@ -172,10 +172,10 @@ export default function Account() {
           </div>
           {/* Journal Entries */}
           <div className="mt-12">
-            <h3 className="text-xl md:text-2xl font-serif font-bold text-[#A09ABC] mb-4 drop-shadow mx-6 my-4">Your Journal Entries</h3>
+            <h3 className="text-xl md:text-2xl font-serif font-bold text-[#A09ABC] mb-4 drop-shadow">Your Journal Entries</h3>
             <div className="space-y-4">
               {journalEntries.length === 0 && (
-                <div className="text-[#B6A6CA] text-center mx-6 my-4">No journal entries yet.</div>
+                <div className="text-[#B6A6CA] text-center">No journal entries yet.</div>
               )}
               {journalEntries.map((entry: JournalEntry) => (
                 <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow flex flex-col border border-white/30">
