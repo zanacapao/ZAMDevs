@@ -61,29 +61,6 @@ export default function Signup() {
       setLoading(false);
       return;
     }
-
-    // Always get the current authenticated user for the insert
-    const { data: sessionData } = await supabase.auth.getUser();
-    const user = sessionData?.user;
-
-    if (user) {
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert([
-          {
-            id: user.id,
-            email: form.email,
-            full_name: form.firstName + " " + form.lastName,
-            phone: form.phone,
-          },
-        ]);
-      if (profileError) {
-        setError(profileError.message);
-        setLoading(false);
-        return;
-      }
-    }
-    // Show success message and disable button
     setSuccess(true);
     setLoading(false);
   };

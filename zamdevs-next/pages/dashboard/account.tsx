@@ -1,11 +1,25 @@
 import { useRef, useState, useEffect, useContext } from "react";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
 import Sidebar from "../../components/Sidebar";
 import Head from "next/head";
 import { TransitionContext } from "../_app";
+import { FaTrophy, FaFire, FaCalendarCheck } from "react-icons/fa";
+
+interface JournalEntry {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+}
 
 export default function Account() {
+  const router = useRouter();
+  const headerInput = useRef<HTMLInputElement>(null);
+  const avatarInput = useRef<HTMLInputElement>(null);
+  
   const [header, setHeader] = useState("/default-header.jpg");
   const [avatar, setAvatar] = useState("/default-avatar.png");
   const [name, setName] = useState("Your Name");
@@ -16,6 +30,9 @@ export default function Account() {
   const [userId, setUserId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [showText, setShowText] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState(false);
   const { showContent } = useContext(TransitionContext);
 
   useEffect(() => {
@@ -37,19 +54,15 @@ export default function Account() {
       // Fetch profile from your 'profiles' table
       const { data: profile } = await supabase
         .from("profiles")
-        .select("avatar_url, header_url, full_name, bio, phone, first_name")
+        .select("avatar_url, header_url, full_name, bio, phone")
         .eq("id", user.id)
         .single();
       if (profile) {
         setAvatar(profile.avatar_url || "/default-avatar.png");
         setHeader(profile.header_url || "/default-header.jpg");
         let displayName = '';
-        if (profile.first_name && profile.first_name.trim() !== '') {
-          displayName = profile.first_name;
-        } else if (profile.full_name && profile.full_name.trim() !== '') {
+        if (profile.full_name && profile.full_name.trim() !== '') {
           displayName = profile.full_name.split(' ')[0];
-        } else {
-          displayName = "Your Name";
         }
         setName(displayName);
         setBio(profile.bio || "Short bio goes here...");
@@ -66,7 +79,7 @@ export default function Account() {
       setLoading(false);
     }
     fetchProfile();
-  }, []);
+  }, [router]);
 
   // Upload image to Supabase Storage and update profile
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "header") {
@@ -160,82 +173,87 @@ export default function Account() {
             />
             <button
               onClick={() => headerInput.current?.click()}
-              className="absolute right-6 bottom-6 bg-white/80 px-4 py-2 rounded shadow text-[#A09ABC] font-semibold hover:bg-white"
+              className="absolute bottom-4 right-4 bg-[#A09ABC] text-white px-4 py-2 rounded-full shadow hover:bg-[#B6A6CA] transition"
             >
-              Edit Header
+              Change Header
             </button>
             <input
               type="file"
-              accept="image/*"
               ref={headerInput}
               style={{ display: "none" }}
+              accept="image/*"
               onChange={e => handleImageChange(e, "header")}
             />
-            {/* Avatar */}
-            <div className="absolute left-1/2 -bottom-16 -translate-x-1/2 border-8 border-white rounded-full w-32 h-32 bg-white shadow flex items-center justify-center overflow-hidden">
-              <Image
-                src={avatar}
-                alt="Avatar"
-                width={112}
-                height={112}
-                style={{ objectFit: "cover" }}
-                onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
-              />
-              <button
-                onClick={() => avatarInput.current?.click()}
-                className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow"
-              >
-                ✏️
-              </button>
-              <input
-                type="file"
-                accept="image/*"
-                ref={avatarInput}
-                style={{ display: "none" }}
-                onChange={e => handleImageChange(e, "avatar")}
-              />
+            <div className="absolute left-1/2 bottom-[-48px] transform -translate-x-1/2">
+              <div className="relative">
+                <Image
+                  src={avatar}
+                  alt="Avatar"
+                  width={96}
+                  height={96}
+                  className="rounded-full border-4 border-[#E1D8E9] bg-white"
+                  onError={e => (e.currentTarget.src = "/default-avatar.png")}
+                />
+                <button
+                  onClick={() => avatarInput.current?.click()}
+                  className="absolute bottom-0 right-0 bg-[#A09ABC] text-white px-2 py-1 rounded-full shadow hover:bg-[#B6A6CA] transition"
+                >
+                  Change
+                </button>
+                <input
+                  type="file"
+                  ref={avatarInput}
+                  style={{ display: "none" }}
+                  accept="image/*"
+                  onChange={e => handleImageChange(e, "avatar")}
+                />
+              </div>
             </div>
           </div>
           {/* Profile Info */}
-          <div className="mt-20 flex flex-col items-center">
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="text-2xl md:text-3xl font-serif font-bold bg-transparent border-none w-full text-center mb-2 text-[#A09ABC] drop-shadow focus:outline-none"
-            />
-            <div className="text-[#6C63A6] mb-2 text-center text-lg font-semibold drop-shadow">{email}</div>
-            <textarea
-              value={bio}
-              onChange={e => setBio(e.target.value)}
-              className="bg-transparent border-none w-full text-center text-[#6C63A6] mb-4 font-medium focus:outline-none"
-              rows={2}
-            />
-            <input
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="Phone Number"
-              className="bg-white/60 border-b border-[#A09ABC]/30 w-full mb-2 px-3 py-2 rounded-lg text-[#6C63A6] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
-            />
-            <button
-              onClick={handlePhoneSave}
-              className="mt-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30"
-            >
-              Save Phone
-            </button>
-          </div>
-          {journalEntries.map((entry) => (
-            <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow flex flex-col border border-white/30">
-              <div className="text-sm text-[#A09ABC] mb-1">
-                {new Date(entry.created_at).toLocaleString()}
-              </div>
-              <div className="font-semibold text-[#6C63A6]">{entry.title}</div>
-              <div className="text-[#6C63A6]">{entry.content}</div>
+          <div className="mt-16 flex flex-col items-center">
+            <div className="text-2xl font-bold text-[#A09ABC] font-serif mb-1">{name}</div>
+            <div className="text-[#6C63A6] mb-1">{email}</div>
+            <div className="text-[#B6A6CA] mb-1">{phone}</div>
+            <div className="flex gap-2 mt-2">
+              <span className="bg-[#B6A6CA] text-white rounded-full px-3 py-1 text-xs font-semibold shadow">🔥 {journalEntries.length} entries</span>
+              <span className="bg-[#D5CFE1] text-[#A09ABC] rounded-full px-3 py-1 text-xs font-semibold shadow">Streak: 5 days</span>
             </div>
-          ))}
+          </div>
+          {/* Achievements Grid */}
+          <div className="mt-8">
+            <div className="text-lg font-bold text-[#A09ABC] mb-2" style={{ fontFamily: 'serif', letterSpacing: 1 }}>Achievements</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {achievements.map((ach, i) => (
+                <div key={i} className="bg-white/40 rounded-xl p-4 flex flex-col items-center shadow backdrop-blur-md border border-white/30">
+                  <div className="text-3xl mb-2 text-[#B6A6CA]">{ach.icon}</div>
+                  <div className="font-semibold text-[#A09ABC] mb-1">{ach.label}</div>
+                  <div className="text-xs text-[#6C63A6] text-center">{ach.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Journal Timeline */}
+          <div className="mt-8">
+            <div className="text-lg font-bold text-[#A09ABC] mb-2" style={{ fontFamily: 'serif', letterSpacing: 1 }}>Journal Timeline</div>
+            <div className="flex flex-col gap-6">
+              {journalEntries.length === 0 ? (
+                <div className="bg-white/40 rounded-xl p-6 text-center text-[#B6A6CA] shadow backdrop-blur-md border border-white/30">No entries yet. Start journaling to see your timeline!</div>
+              ) : (
+                journalEntries.map((entry, idx) => (
+                  <div key={entry.id} className="bg-white/40 rounded-xl p-6 shadow backdrop-blur-md border border-white/30 flex flex-col gap-2 relative">
+                    <div className="absolute left-[-32px] top-8 w-2 h-2 bg-[#A09ABC] rounded-full shadow" style={{ display: idx === 0 ? 'none' : 'block' }}></div>
+                    <div className="text-xs text-[#B6A6CA] mb-1">{new Date(entry.created_at).toLocaleString()}</div>
+                    <div className="font-semibold text-[#A09ABC] text-lg">{entry.title || 'Untitled Entry'}</div>
+                    <div className="text-[#6C63A6] whitespace-pre-wrap">{entry.content}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </main>
-      </div>
-    );
-  }
+    </>
+  );
+}
   

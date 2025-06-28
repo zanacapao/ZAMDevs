@@ -26,18 +26,12 @@ export default function Dashboard() {
       // Fetch user profile data
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, first_name, last_name')
+        .select('full_name')
         .eq('id', user.id)
         .single();
       let firstName = '';
-      if (profile) {
-        if (profile.first_name && profile.first_name.trim() !== '') {
-          firstName = profile.first_name;
-        } else if (profile.full_name && profile.full_name.trim() !== '') {
-          firstName = profile.full_name.split(' ')[0];
-        } else {
-          firstName = 'Friend';
-        }
+      if (profile && profile.full_name && profile.full_name.trim() !== '') {
+        firstName = profile.full_name.split(' ')[0];
       }
       setUser({ first_name: firstName, id: user.id });
       setLoading(false);
@@ -102,11 +96,11 @@ export default function Dashboard() {
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
         
         {/* Main Content */}
-        <main className={`flex-1 p-10 bg-transparent min-h-screen transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-64'}`}>
+        <main className={`flex-1 p-10 bg-transparent min-h-screen transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'}`}>
           <div className="rounded-2xl mb-8 p-8 bg-[#E1D8E9] border border-[#D5CFE1] shadow-lg flex flex-col md:flex-row md:items-center md:justify-between" style={{ boxShadow: '0 4px 24px #D5CFE1' }}>
             <div>
               <h2 className="text-4xl font-extrabold text-[#A09ABC] mb-1 tracking-wide" style={{ fontFamily: 'serif', letterSpacing: 1 }}>
-                Welcome back, <span className="text-[#B6A6CA]">{user?.first_name || 'Friend'}</span>!
+                Welcome back, <span className="text-[#B6A6CA]">{user?.first_name}</span>!
               </h2>
               <p className="text-[#6C63A6] text-lg font-medium mt-2">How are you feeling today?</p>
               <div className="mt-3 flex gap-4 items-center">
