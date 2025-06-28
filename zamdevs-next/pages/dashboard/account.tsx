@@ -1,9 +1,16 @@
-import { useRef, useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import Image from "next/image";
 import { supabase } from "../../lib/supabaseClient";
 import Sidebar from "../../components/Sidebar";
 import Head from "next/head";
 import { TransitionContext } from "../_app";
+
+type JournalEntry = {
+  id: string;
+  created_at: string;
+  // Add other fields as needed from your journal table
+  [key: string]: unknown;
+};
 
 export default function Account() {
   const [header, setHeader] = useState("/default-header.jpg");
@@ -12,13 +19,13 @@ export default function Account() {
   const [bio, setBio] = useState("Short bio goes here...");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [journalEntries, setJournalEntries] = useState<any[]>([]);
-  const headerInput = useRef<HTMLInputElement>(null);
-  const avatarInput = useRef<HTMLInputElement>(null);
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [showText, setShowText] = useState(false);
   const { showContent } = useContext(TransitionContext);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setShowText(true), 100);
@@ -56,30 +63,17 @@ export default function Account() {
     fetchProfile();
   }, []);
 
-  // Upload image to Supabase Storage and update profile
-  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "header") {
-    if (e.target.files && e.target.files[0] && userId) {
-      const file = e.target.files[0];
-      const filePath = `${userId}/${type}-${Date.now()}.${file.name.split('.').pop()}`;
-      let { error: uploadError } = await supabase.storage
-        .from("profile-images")
-        .upload(filePath, file, { upsert: true });
-      if (!uploadError) {
-        const { data } = supabase.storage.from("profile-images").getPublicUrl(filePath);
-        if (type === "avatar") {
-          setAvatar(data.publicUrl);
-          await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", userId);
-        } else {
-          setHeader(data.publicUrl);
-          await supabase.from("profiles").update({ header_url: data.publicUrl }).eq("id", userId);
-        }
-      }
-    }
-  }
-
-  async function handlePhoneSave() {
+  async function handleProfileSave() {
     if (userId) {
-      await supabase.from("profiles").update({ phone }).eq("id", userId);
+      setProfileLoading(true);
+      await supabase.from("profiles").update({
+        full_name: name,
+        bio,
+        phone,
+      }).eq("id", userId);
+      setProfileLoading(false);
+      setProfileSuccess(true);
+      setTimeout(() => setProfileSuccess(false), 3000);
     }
   }
 
@@ -110,98 +104,84 @@ export default function Account() {
       <div className="absolute left-1/4 bottom-1/4 text-[#fff] text-lg opacity-40 z-0 animate-twinkle" style={{ animationDelay: "1s" }}>✦</div>
       <div className="absolute left-1/2 top-1/6 text-[#fff] text-lg opacity-60 z-0 animate-twinkle" style={{ animationDelay: "2s" }}>✦</div>
       {/* Main Content */}
-      <main className="flex-1 ml-64 flex items-center justify-center p-6 min-h-screen">
-        <div className={`relative z-20 w-full max-w-2xl mx-auto px-6 py-10 bg-white/30 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          {/* Header Image & Avatar */}
-          <div className="relative h-48 md:h-56 bg-gradient-to-r from-[#A09ABC]/40 to-[#B6A6CA]/40 rounded-2xl overflow-hidden mb-20 flex items-center justify-center">
+      <main className={`flex-1 ${collapsed ? 'mx-auto' : 'ml-64'} flex items-center justify-center p-6 min-h-screen`}>
+        <div className={`relative z-20 w-full max-w-2xl mx-auto px-0 py-0 bg-white/10 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Header Banner */}
+          <div className="relative h-56 w-full bg-gradient-to-r from-[#A09ABC]/40 to-[#B6A6CA]/40 rounded-t-3xl overflow-hidden flex items-center justify-center">
             <Image
               src={header}
               alt="Header"
               fill
               style={{ objectFit: "cover" }}
-              className="rounded-2xl"
-              onError={(e) => (e.currentTarget.src = "/default-header.jpg")}
+              className="rounded-t-3xl"
+              onError={(e) => (e.currentTarget.src = "/default-header.png")}
             />
-            <button
-              onClick={() => headerInput.current?.click()}
-              className="absolute right-6 bottom-6 bg-white/80 px-4 py-2 rounded shadow text-[#A09ABC] font-semibold hover:bg-white"
-            >
-              Edit Header
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              ref={headerInput}
-              style={{ display: "none" }}
-              onChange={e => handleImageChange(e, "header")}
-            />
+          </div>
+          {/* Profile Picture and Info Row */}
+          <div className="relative flex flex-row items-end justify-between px-8 -mt-16">
             {/* Avatar */}
-            <div className="absolute left-1/2 -bottom-16 -translate-x-1/2 border-8 border-white rounded-full w-32 h-32 bg-white shadow flex items-center justify-center overflow-hidden">
+            <div className="relative border-8 border-white rounded-full w-36 h-36 bg-white shadow flex items-center justify-center overflow-hidden">
               <Image
                 src={avatar}
                 alt="Avatar"
-                width={112}
-                height={112}
+                width={144}
+                height={144}
                 style={{ objectFit: "cover" }}
                 onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
               />
+            </div>
+            {/* Save Profile Button (styled like Follow) */}
+            <div className="mb-8">
+              {profileSuccess && (
+                <div className="text-green-600 bg-white/80 border border-green-300 rounded-lg p-2 mb-2 text-center shadow">
+                  Profile updated successfully!
+                </div>
+              )}
               <button
-                onClick={() => avatarInput.current?.click()}
-                className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow"
+                onClick={handleProfileSave}
+                className="px-8 py-3 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-bold text-lg shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30"
+                disabled={profileLoading}
+                style={{ minWidth: 140 }}
               >
-                ✏️
+                {profileLoading ? "Saving..." : "Save Profile"}
               </button>
-              <input
-                type="file"
-                accept="image/*"
-                ref={avatarInput}
-                style={{ display: "none" }}
-                onChange={e => handleImageChange(e, "avatar")}
-              />
             </div>
           </div>
           {/* Profile Info */}
-          <div className="mt-20 flex flex-col items-center">
+          <div className="mt-6 flex flex-col items-center px-8">
             <input
               value={name}
               onChange={e => setName(e.target.value)}
-              className="text-2xl md:text-3xl font-serif font-bold bg-transparent border-none w-full text-center mb-2 text-[#A09ABC] drop-shadow focus:outline-none"
+              className="text-2xl md:text-3xl font-serif font-bold bg-transparent border-none w-full text-center mb-2 text-[#ede9fe] drop-shadow focus:outline-none"
             />
             <div className="text-[#6C63A6] mb-2 text-center text-lg font-semibold drop-shadow">{email}</div>
+            <input
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              className="text-[#6C63A6] mb-2 text-center text-base font-medium bg-transparent border-none w-full focus:outline-none"
+              placeholder="Phone number"
+            />
             <textarea
               value={bio}
               onChange={e => setBio(e.target.value)}
               className="bg-transparent border-none w-full text-center text-[#6C63A6] mb-4 font-medium focus:outline-none"
               rows={2}
             />
-            <input
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="Phone Number"
-              className="bg-white/60 border-b border-[#A09ABC]/30 w-full mb-2 px-3 py-2 rounded-lg text-[#6C63A6] focus:outline-none focus:ring-2 focus:ring-[#A09ABC]"
-            />
-            <button
-              onClick={handlePhoneSave}
-              className="mt-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30"
-            >
-              Save Phone
-            </button>
           </div>
           {/* Journal Entries */}
-          <div className="mt-12">
-            <h3 className="text-xl md:text-2xl font-serif font-bold text-[#A09ABC] mb-4 drop-shadow">Your Journal Entries</h3>
+          <div className="mt-12 mb-6 px-6">
+            <h3 className="text-xl md:text-2xl font-serif font-light text-[#ede9fe] mb-4 drop-shadow">Your Journal Entries</h3>
             <div className="space-y-4">
               {journalEntries.length === 0 && (
-                <div className="text-[#B6A6CA] text-center">No journal entries yet.</div>
+                <div className="text-[#ede9fe] text-center mt-4">No journal entries yet.</div>
               )}
-              {journalEntries.map((entry: any) => (
+              {journalEntries.map((entry: JournalEntry) => (
                 <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow flex flex-col border border-white/30">
                   <div className="text-sm text-[#A09ABC] mb-1">
                     {new Date(entry.created_at).toLocaleString()}
                   </div>
-                  <div className="font-semibold text-[#6C63A6]">{entry.title}</div>
-                  <div className="text-[#6C63A6]">{entry.content}</div>
+                  <div className="font-semibold text-[#6C63A6]">{String(entry.title)}</div>
+                  <div className="text-[#6C63A6]">{String(entry.content)}</div>
                 </div>
               ))}
             </div>
