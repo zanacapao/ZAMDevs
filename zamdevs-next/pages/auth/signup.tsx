@@ -4,6 +4,7 @@ import Image from "next/image";
 import { supabase } from "../../lib/supabaseClient";
 import Head from "next/head";
 import { TransitionContext } from "../_app";
+import { FiBell } from "react-icons/fi";
 
 export default function Signup() {
   const [animate, setAnimate] = useState(false);
@@ -20,6 +21,7 @@ export default function Signup() {
   const router = useRouter();
   const [showText, setShowText] = useState(false);
   const { showContent } = useContext(TransitionContext);
+  const [accountExists, setAccountExists] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setAnimate(true), 400);
@@ -38,7 +40,7 @@ export default function Signup() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
@@ -48,13 +50,49 @@ export default function Signup() {
         },
       },
     });
+    if (error) {
+      if (error.message && error.message.toLowerCase().includes("already registered")) {
+        setAccountExists(true);
+      }
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // Always get the current authenticated user for the insert
+    const { data: sessionData } = await supabase.auth.getUser();
+    const user = sessionData?.user;
+
+    if (user) {
+      console.log("User object before profile insert:", user); // Debug log
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert([
+          {
+            id: user.id,
+            email: form.email,
+            full_name: form.firstName + " " + form.lastName,
+          },
+        ]);
+      if (profileError) {
+        setError(profileError.message);
+        setLoading(false);
+        return;
+      }
+    } else {
+      setError("User not authenticated after signup.");
+      setLoading(false);
+      return;
+    }
+
+    console.log("Signup response data:", data);
+
     setLoading(false);
-    if (error) setError(error.message);
-    else setSuccess(true);
+    setSuccess(true);
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center animate-gradient-bg overflow-hidden">
+    <div className={`relative min-h-screen w-full flex items-center justify-center animate-gradient-bg overflow-hidden${animate ? ' animate-fade-in' : ''}`}>
       <Head>
         <title>Sign Up | Reflectly</title>
       </Head>
@@ -81,6 +119,19 @@ export default function Signup() {
       <div className={`relative z-20 flex flex-col items-center justify-center w-full max-w-md mx-auto px-6 py-10 bg-white/20 rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <h1 className={`font-serif text-3xl md:text-4xl font-bold text-white drop-shadow-[0_2px_8px_rgba(80,60,120,0.25)] mb-4 transition-all duration-700 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>Sign Up</h1>
         <p className={`mb-8 text-lg text-white/90 text-center drop-shadow-[0_1px_6px_rgba(80,60,120,0.18)] transition-all duration-700 delay-150 ${showText && showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>Create your account and start your journey with Reflectly.</p>
+        {accountExists && (
+          <div className="flex items-center justify-center gap-2 bg-white/80 border border-[#D5CFE1] rounded-lg p-3 mb-2 text-[#6C63A6] shadow">
+            <FiBell className="text-xl" />
+            <span>
+              This account is already registered. <span className="underline cursor-pointer text-[#A09ABC] font-semibold" onClick={() => router.push("/auth/login")}>Proceed to login</span>.
+            </span>
+          </div>
+        )}
+        {success && (
+          <div className="text-green-600 bg-white/80 border border-green-300 rounded-lg p-3 mb-2 text-center shadow">
+            Signup successful! Please check your email to confirm your account.
+          </div>
+        )}
         <form className="w-full max-w-md bg-white/30 rounded-xl shadow-lg p-8 flex flex-col gap-4" onSubmit={handleSignup}>
           <label htmlFor="firstName" className="text-white/90 font-semibold mb-1">First Name</label>
           <input
@@ -140,7 +191,7 @@ export default function Signup() {
           <div className="flex items-center gap-2 text-xs text-[#6C63A6] font-light">
             <input type="checkbox" required id="terms" className="accent-[#A09ABC]" />
             <label htmlFor="terms">
-              I've read and agree with Terms of Service and our Privacy Policy
+              I&#39ve read and agree with Terms of Service and our Privacy Policy
             </label>
           </div>
           <button className="py-2 rounded-lg bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-semibold hover:from-[#B6A6CA] hover:to-[#A09ABC] transition" type="submit" disabled={loading}>
