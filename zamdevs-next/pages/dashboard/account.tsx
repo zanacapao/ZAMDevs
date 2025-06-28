@@ -8,6 +8,8 @@ import { TransitionContext } from "../_app";
 type JournalEntry = {
   id: string;
   created_at: string;
+  title?: string;
+  content?: string;
   // Add other fields as needed from your journal table
   [key: string]: unknown;
 };
@@ -63,7 +65,7 @@ export default function Account() {
     fetchProfile();
   }, []);
 
-  async function handleProfileSave() {
+  async function handlePhoneSave() {
     if (userId) {
       setProfileLoading(true);
       await supabase.from("profiles").update({
@@ -138,7 +140,7 @@ export default function Account() {
                 </div>
               )}
               <button
-                onClick={handleProfileSave}
+                onClick={handlePhoneSave}
                 className="px-8 py-3 rounded-full bg-gradient-to-r from-[#A09ABC] to-[#B6A6CA] text-white font-bold text-lg shadow hover:from-[#B6A6CA] hover:to-[#A09ABC] transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#A09ABC]/30"
                 disabled={profileLoading}
                 style={{ minWidth: 140 }}
@@ -169,25 +171,25 @@ export default function Account() {
             />
           </div>
           {/* Journal Entries */}
-          <div className="mt-12 mb-6 px-6">
-            <h3 className="text-xl md:text-2xl font-serif font-light text-[#ede9fe] mb-4 drop-shadow">Your Journal Entries</h3>
+          <div className="mt-12">
+            <h3 className="text-xl md:text-2xl font-serif font-bold text-[#A09ABC] mb-4 drop-shadow mx-6 my-4">Your Journal Entries</h3>
             <div className="space-y-4">
               {journalEntries.length === 0 && (
-                <div className="text-[#ede9fe] text-center mt-4">No journal entries yet.</div>
+                <div className="text-[#B6A6CA] text-center mx-6 my-4">No journal entries yet.</div>
               )}
               {journalEntries.map((entry: JournalEntry) => (
                 <div key={entry.id} className="bg-white/70 rounded-xl p-4 shadow flex flex-col border border-white/30">
                   <div className="text-sm text-[#A09ABC] mb-1">
                     {new Date(entry.created_at).toLocaleString()}
                   </div>
-                  <div className="font-semibold text-[#6C63A6]">{String(entry.title)}</div>
-                  <div className="text-[#6C63A6]">{String(entry.content)}</div>
+                  <div className="font-semibold text-[#6C63A6]">{entry.title}</div>
+                  <div className="text-[#6C63A6]">{entry.content}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </main>
-    </div>
-  );
-}
+      </div>
+    );
+  }
